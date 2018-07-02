@@ -1,5 +1,5 @@
 (function(){
-    $(window).on({
+    $(document).on({
         dragleave:function(e){
             e.preventDefault();
         },
@@ -18,10 +18,16 @@
     var speaker = document.getElementById("speaker");
     var infopanel = document.getElementById("infopanel");
     var manualLoad = document.getElementById("manualLoad");
-    var cacheList = [];
     window.server = "file.yuuno.cc";
+    var myX = 0,
+        myY = 0;
+    var crt = null;
+    var myclip = null;
+    var cacheList = [];
 
-    const clipboard = require('electron').clipboard;
+    const IMAGETYPE = [
+        "bmp", "png", "jpg", "jepg", "gif", "svg"
+    ];
 
     var dateFormat = function (d, fmt) {
         var o = {
@@ -90,8 +96,8 @@
             "name": fileList[0].name,
             "size": Math.floor((fileList[0].size)/1024)
         };
-        if (fileInfo.size > 10 * 1024) {
-            infopanel.innerHTML = "上传文件大小不能超过 10 MBytes 喲.";
+        if (fileInfo.size > 6 * 1024) {
+            infopanel.innerHTML = "上传文件大小不能超过 6 MBytes 喲.";
             speaker.innerHTML = "/(ㄒoㄒ)/ 喂得太多了啦 TAT";
             setProgress(-1);
             shake();
@@ -113,6 +119,7 @@
         xhr.open("post", `https://${window.server}/.netlify/functions/slink`, true);
         var fd = new FormData();
         fd.append('file', fileList[0]);
+        fd.append('type', fileInfo.type);
         xhr.upload.onprogress = (evt) => {
             var current = parseInt(evt.loaded / 1024);
             current = current > fileInfo.size ? fileInfo.size : current;
@@ -148,27 +155,42 @@
         board.innerHTML = "";
         var chtml = "";
         cacheList.forEach(e => {
+            visual = `<h1 id="title_${e.identifier}">${e.type}</h1>`;
+            if ((e.hasOwnProperty("ctype") && e["ctype"].includes("image")) ||
+                    IMAGETYPE.includes(e["type"].toLocaleLowerCase())) {
+                visual = `<div id="title_p_${e.identifier}" class="pic" style="background-image: url(https://${window.server}/${e.identifier});"></div>`;
+            }
             chtml += `
             <div id="file_${e.identifier}" class="fileWrapper">
-                <h1>${e.type}</h1>
+                ${visual}
                 <ul>
                     <li>文件名稱:<in>${e.name}</in></li>
                     <li>文件大小:<in>${Math.floor(e.size / 1024)} KBytes</in></li>
                     <li>上傳日期:<in>${dateFormat(new Date(parseInt(e.date) * 1000), "yyyy-MM-dd hh:mm")}</in></li>
                     <li>剩餘天數:<in>infinite</in></li>
-                    <li>外鏈地址:<in>${e.identifier}</in></li>
                 </ul>
                 <lr>
-                    <a href="javascript:;" identifier="${e.identifier}" class="cpy"><span>複製鏈接</span></a>
-                    <!--<a href="javascript:;" identifier="${e.identifier}" class="x1s"><span>續一秒</span></a>-->
+                    <a href="javascript:;" identifier="${e.identifier}" class="clp"><span>複製</span></a>
+                    <a href="https://${window.server}/${e.identifier}" target="_blank"><span>下載</span></a>
+                    <a href="javascript:;" identifier="${e.identifier}" class="x1s"><span>續一秒</span></a>
                     <a href="javascript:;" identifier="${e.identifier}" class="del"><span>刪除記錄</span></a>
                 </lr>
             </div>
             `;
         });
         board.innerHTML = chtml;
-        $(".cpy").on("click", (e) => {
-            cpy($(e.currentTarget).attr("identifier"));
+        if (myclip != null) {
+            myclip.destroy();
+            myclip = null;
+        }
+        myclip = new Clipboard('.clp', {
+            text: function(trigger) {
+                $(".clp span").html("複製");
+                $(".clp").css("color", "");
+                $(`#file_${trigger.getAttribute('identifier')} lr .clp span`).html("成功");
+                $(`#file_${trigger.getAttribute('identifier')} lr .clp`).css("color", "green");
+                return `https://${window.server}/` + trigger.getAttribute('identifier');
+            }
         });
         $(".x1s").on("click", (e) => {
             x1s($(e.currentTarget).attr("identifier"));
@@ -176,17 +198,40 @@
         $(".del").on("click", (e) => {
             del($(e.currentTarget).attr("identifier"));
         });
-    }
 
-    var cpy = (e) => {
-        clipboard.writeText(`https://${window.server}/${e}`);
-        $(`#file_${e} lr .cpy span`).html("複製成功");
-        $(`#file_${e} lr .cpy`).css("color", "green");
+        $(".pic").on("mousedown", (e) => {
+            crt = $(e.currentTarget);
+            crt.css("cursor", "-webkit-grabbing");
+            crt.css("transition-duration", "0s");
+            $("body").css("cursor", "-webkit-grabbing");
+            myX = e.screenX;
+            myY = e.screenY;
+        });
     }
+    $(window).on("mousemove", (e) => {
+        if (null !== crt) {
+            crt.css("background-position-x", e.screenX - myX);
+            crt.css("background-position-y", e.screenY - myY);
+            e.preventDefault();
+        }
+    });
+    $(window).on("mouseup", (e) => {
+        if (null !== crt) {
+            $("body").css("cursor", "");
+            crt.css("cursor", "");
+            crt.css("transition-duration", "0.3s");
+            crt.css("background-position-x", "");
+            crt.css("background-position-y", "");
+            crt = null;
+        }
+    });
+
     var x1s = (e) => {
         let eid = e;
         $.get(`https://${window.server}/${e}/true`, (e) => {
             if (e.status) {
+                $(".x1s span").html("續一秒");
+                $(".x1s").css("color", "");
                 $(`#file_${eid} lr .x1s span`).html("續.成功");
                 $(`#file_${eid} lr .x1s`).css("color", "red");
             }

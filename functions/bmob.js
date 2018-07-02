@@ -1,5 +1,4 @@
 const https = require('https');
-const fs = require('fs');
 
 const APPID = process.env.bmob_for_use_app || "";
 const APPSC = process.env.bmob_for_use_sec || "";
