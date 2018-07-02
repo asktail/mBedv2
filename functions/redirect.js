@@ -81,7 +81,7 @@ function getUrl (slink, callback) {
                 let data = JSON.parse(html);
                 data = JSON.parse(data.data);
                 if (data && data.lid) {
-                    bmob.retrieveURL(data.lid, callback);
+                    retrieveURL(data.lid, callback);
                 } else {callback(null);}
             } catch (error) {
                 callback(null);

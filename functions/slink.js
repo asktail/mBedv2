@@ -145,7 +145,7 @@ exports.handler = function (event, context, callback) {
     };
 
     getSlink(recordedData, slink => {
-        bmob.saveFile(recordedData, content, res => {
+        saveFile(recordedData, content, res => {
             callback(null, {
                 statusCode: 200,
                 body: JSON.stringify({...recordedData, url: `https://file.yuuno.cc/${slink}`, slink})
