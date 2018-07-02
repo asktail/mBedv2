@@ -144,8 +144,8 @@ exports.handler = function (event, context, callback) {
         name, size, type, ctype, ip, lid, time
     };
 
-    getSlink(recordedData, slink => {
-        saveFile(recordedData, content, res => {
+    saveFile(recordedData, content, res => {
+        getSlink(recordedData, slink => {
             callback(null, {
                 statusCode: 200,
                 headers: {
