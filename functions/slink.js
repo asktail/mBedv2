@@ -148,7 +148,7 @@ exports.handler = function (event, context, callback) {
         saveFile(recordedData, content, res => {
             callback(null, {
                 statusCode: 200,
-                body: JSON.stringify({...recordedData, url: `https://file.yuuno.cc/${slink}`, slink})
+                body: JSON.stringify({...recordedData, url: `https://file.yuuno.cc/${slink}`, identifier: slink, date: time})
             });
         });
     });
