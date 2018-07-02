@@ -148,7 +148,12 @@ exports.handler = function (event, context, callback) {
         saveFile(recordedData, content, res => {
             callback(null, {
                 statusCode: 200,
-                body: JSON.stringify({...recordedData, url: `https://file.yuuno.cc/${slink}`, identifier: slink, date: time})
+                headers: {
+                    "Access-Control-Allow-Origin": "*",
+                    "Access-Control-Allow-Methods": "GET, POST",
+                    "Content-Type": "application/json; charset=utf-8"
+                },
+                body: JSON.stringify({status: true, data: {...recordedData, url: `https://file.yuuno.cc/${slink}`, identifier: slink, date: time}})
             });
         });
     });
