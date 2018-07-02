@@ -58,7 +58,7 @@ function retrieveURL (fid, callback) {
 }
 
 function saveFile (info, content, callback) {
-    request(`/files/${info.name}`, content, 'POST', 2, {"Content-Type": info.ctype}, data => {
+    request(`/files/${encodeURI(info.name)}`, content, 'POST', 2, {"Content-Type": info.ctype}, data => {
         let {cdn, url} = data;
         let fid = info.lid;
         request("/classes/moenya", {fid, url, cdn}, 'POST', 1, {"Content-Type": "application/json"}, res => {
