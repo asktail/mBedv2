@@ -4,6 +4,10 @@ var crypto = require('crypto');
 const APPID = process.env.bmob_for_use_app || "";
 const APPSC = process.env.bmob_for_use_sec || "";
 
+const log = function(...text) {
+    console.log(`[MB ${parseInt((new Date()).getTime() / 1000, 10)}]`, ...text)
+}
+
 function request (uri, query={}, method='GET', server=1, addsHeaders={}, callback=()=>{}) {
 
     let queryData = '';
@@ -109,6 +113,7 @@ function getSlink (info, callback) {
 
 exports.handler = function (event, context, callback) {
 
+    log("Receive Request From", event.headers["x-forwarded-for"]);
     if (event.httpMethod !== "POST" || !event.isBase64Encoded) {
         callback(null, {
             statusCode: 200,
@@ -116,6 +121,7 @@ exports.handler = function (event, context, callback) {
         });
         return;
     }
+    log("Process Request From", event.headers["x-forwarded-for"]);
 
     let time = parseInt((new Date()).getTime() / 1000, 10);
     let body = Buffer.from(event.body, 'base64');
@@ -144,8 +150,14 @@ exports.handler = function (event, context, callback) {
         name, size, type, ctype, ip, lid, time
     };
 
+    log("Done Converting From", ip);
+
     saveFile(recordedData, content, res => {
+
+        log("Done Saving From", ip);
         getSlink(recordedData, slink => {
+
+            log("All Done From", ip);
             callback(null, {
                 statusCode: 200,
                 headers: {
