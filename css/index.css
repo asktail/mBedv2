@@ -4,11 +4,7 @@
     transition: .3s ease;
     font-family: 'Montserrat Alternates', sans-serif, FontAwesome;
     font-weight: 100;
-    -webkit-font-smoothing: antialiased; 
-}
-
-html {
-    background: #FFF;
+    -webkit-font-smoothing: antialiased;
 }
 
 body, .container {
@@ -40,10 +36,9 @@ body, .container {
 .uploader h1 {
     cursor: pointer;
     position: relative;
-    margin-top: 15%;
+    margin-top: 20%;
     display: block;
     text-align: center;
-    font-size: 18px;
     color: #999;
 }
 
@@ -54,9 +49,9 @@ body, .container {
 .uploader span {
     cursor: pointer;
     position: relative;
-    margin-top: .5em;
+    margin-top: 1em;
     display: block;
-    font-size: 15px;
+    font-size: 1.2em;
     text-align: center;
     color: #999;
 }
@@ -68,9 +63,9 @@ body, .container {
 .uploader small {
     cursor: pointer;
     position: relative;
-    margin-top: .5em;
+    margin-top: 1em;
     display: block;
-    font-size: 12px;
+    font-size: .8em;
     text-align: center;
     color: #666;
 }
@@ -82,8 +77,8 @@ body, .container {
     height: 4px;
     border-radius: 10px;
     margin: 0 auto;
-    margin-top: .8em;
-    margin-bottom: 15%;
+    margin-top: 2em;
+    margin-bottom: 20%;
     z-index: 1;
 }
 
@@ -104,34 +99,47 @@ body, .container {
 
 .board {
     margin: 1em 1em;
-    margin-top: 1em;
+    margin-top: 3em;
 }
 
 .fileWrapper {
     background: #FFF;
     margin: 0 auto;
-    margin-bottom: 2em;
+    margin-top: 1em;
     border: none;
     border-radius: 0;
     min-height: 160px;
     width: calc(100% - 2em);
     border-right: 5px solid #CCC;
-    font-size: 12px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    font-size: 1em;
+    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
 }
 
 .fileWrapper h1 {
-    display: block;
-    position: relative;
-    background: #CCC;
-    width: calc(100%-2em);
-    color: #333;
-    padding: 2px 0;
-    text-align: center;
-    font-size: 15px;
+    display: inline-block;
+    border-radius: 10px;
+    background: #EEE;
+    margin: 30px 10px;
+    margin-left: 20px;
+    padding: 30px 0px;
+    font-size: 30px;
     cursor: default;
     overflow-x: hidden;
+    width: 150px;
+    /* height: 37px; */
+    text-align: center;
+}
 
+.fileWrapper .pic {
+    width: 150px;
+    height: 97px;
+    display: inline-block;
+    margin: 30px 10px;
+    margin-left: 20px;
+    background-size: cover;
+    background-repeat: no-repeat;
+    border-radius: 10px;
+    cursor: -webkit-grab;
 }
 
 .fileWrapper ul {
@@ -144,11 +152,10 @@ body, .container {
 
 .fileWrapper li {
     display: block;
-    cursor: default;
-    white-space: pre;
+    cursor: inherit;
+    /* white-space: pre; */
     word-wrap: break-word;
-    overflow-x: hidden;
-    margin-bottom: 5px;
+    margin-bottom: 15px;
 }
 
 .fileWrapper li in {
