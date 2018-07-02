@@ -120,9 +120,7 @@ exports.handler = function (event, context, callback) {
     let time = parseInt((new Date()).getTime() / 1000, 10);
     let body = Buffer.from(event.body, 'base64');
     let start = Buffer.from('\r\n\r\n');
-    let end = Buffer.from('\r\n--------------------------');
-    console.log(body.length);
-    console.log(body);
+    let end = Buffer.from('\r\n---');
     let bstart = body.indexOf(start) + 4;
     let bend = body.lastIndexOf(end);
     let blength = bend - bstart;
