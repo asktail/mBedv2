@@ -96,7 +96,7 @@ function getSlink (info, callback) {
         res.on('data', function(data) { html += data; });
         res.on('end', function() {
             try {
-                data = JSON.parse(html).data.slink;
+                data = JSON.parse(html).data;
                 callback(data);
             } catch (error) {
                 callback(null);
@@ -117,6 +117,7 @@ exports.handler = function (event, context, callback) {
         return;
     }
 
+    console.log(event);
     let time = parseInt((new Date()).getTime() / 1000, 10);
     let body = Buffer.from(event.body, 'base64');
     let start = Buffer.from('\r\n\r\n');
