@@ -119,7 +119,6 @@
         xhr.open("post", `https://${window.server}/.netlify/functions/slink`, true);
         var fd = new FormData();
         fd.append('file', fileList[0]);
-        fd.append('type', fileInfo.type);
         xhr.upload.onprogress = (evt) => {
             var current = parseInt(evt.loaded / 1024);
             current = current > fileInfo.size ? fileInfo.size : current;
