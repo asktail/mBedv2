@@ -118,11 +118,23 @@ function parseData(data) {
         return null;
     }
 }
-function getFile(path) {
+function getFile(path, thumb=0) {
     return new Promise((resolve) => {
         getKey(token => {
             mrequest(`:/upload${path}`, {}, token).then(data => {
-                resolve(parseData(data));
+                let resData = parseData(data);
+                if (thumb !== 0 && resData.type.includes("image")) {
+                    getThumbnail(path, thumb, token).then(res => {
+                        resData.originUrl = resData.url;
+                        resData.url = res[0];
+                        resData.thumb = res[1];
+                        resolve(resData);
+                    }).catch(err => {
+                        resolve(resData);
+                    })
+                } else {
+                    resolve(resData);
+                }
             })
         });
     })
@@ -136,8 +148,21 @@ function saveFile(path, content, type) {
         });
     })
 }
+function getThumbnail(path, thumb, token) {
+    return new Promise((resolve, reject) => {
+        let allSizes = ["", "large", "medium", "small"];
+        thumb = parseInt(thumb, 10);
+        if (!thumb || thumb < 1 || thumb > 3) { reject(path); return; }
+        let size = allSizes[thumb];
+        getKey(token => {
+            mrequest(`:/upload${path}:/thumbnails/0`, {select: size}, token).then(data => {
+                resolve([data[size].url, thumb]);
+            })
+        });
+    })
+}
 
-function getUrl (slink, callback) {
+function getUrl (slink, thumb, callback) {
 
     https.get(`https://${siteId}/slinkcon/mbed/${slink}`, function (res) {
         res.setEncoding('utf-8');
@@ -150,8 +175,8 @@ function getUrl (slink, callback) {
                 let data = JSON.parse(html);
                 data = JSON.parse(data.data);
                 if (data && data.name) {
-                    getFile(`/${slink}/${data.name}`).then(res => {
-                        callback(res && res.url || null);
+                    getFile(`/${slink}/${data.name}`, thumb).then(res => {
+                        callback(res);
                     });
                 } else {callback(null);}
             } catch (error) {
@@ -164,12 +189,22 @@ function getUrl (slink, callback) {
 exports.handler = function (event, context, callback) {
 
     let slink = event.queryStringParameters.slink || "";
-    getUrl(slink.trim(), url => {
-        callback(null, {
-            statusCode: 302,
-            headers: { "Location": url || "https://error.yuuno.cc" },
-            body: ""
-        });
+    let thumb = event.queryStringParameters.thumb || 0;
+    let op = event.queryStringParameters.op || null;
+
+    getUrl(slink.trim(), thumb, res => {
+        if (op === "raw") {
+            callback(null, {
+                statusCode: 200,
+                body: JSON.stringify(res)
+            });
+        } else {
+            callback(null, {
+                statusCode: 302,
+                headers: { "Location": res && res.url || "https://error.yuuno.cc" },
+                body: ""
+            });
+        }
     });
 
 }

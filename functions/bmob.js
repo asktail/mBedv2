@@ -114,11 +114,23 @@ function parseData(data) {
     }
 }
 
-function getFile(path) {
+function getFile(path, thumb=0) {
     return new Promise((resolve) => {
         getKey(token => {
             mrequest(`:/upload${path}`, {}, token).then(data => {
-                resolve(parseData(data));
+                let resData = parseData(data);
+                if (thumb !== 0 && resData.type.includes("image")) {
+                    getThumbnail(path, thumb, token).then(res => {
+                        resData.originUrl = resData.url;
+                        resData.url = res[0];
+                        resData.thumb = res[1];
+                        resolve(resData);
+                    }).catch(err => {
+                        resolve(resData);
+                    })
+                } else {
+                    resolve(resData);
+                }
             })
         });
     })
@@ -134,9 +146,26 @@ function saveFile(path, content, type) {
     })
 }
 
-// getFile("/favicon.png").then(res => {
+function getThumbnail(path, thumb, token) {
+    return new Promise((resolve, reject) => {
+        let allSizes = ["", "large", "medium", "small"];
+        thumb = parseInt(thumb, 10);
+        if (!thumb || thumb < 1 || thumb > 3) { reject(path); return; }
+        let size = allSizes[thumb];
+        getKey(token => {
+            mrequest(`:/upload${path}:/thumbnails/0`, {select: size}, token).then(data => {
+                resolve([data[size].url, thumb]);
+            })
+        });
+    })
+}
+
+// getFile("/favicon.png", "4").then(res => {
 //     console.log(res);
 // })
 // saveFile("/3jeA8fu3/favicon.png", require("fs").readFileSync("../favicon.png"), "image/png").then(res => {
+//     console.log(res);
+// })
+// getThumbnail("/fetch.sh").then(res => {
 //     console.log(res);
 // })
