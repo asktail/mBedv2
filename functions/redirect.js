@@ -188,8 +188,6 @@ function getUrl (slink, thumb, callback) {
 
 exports.handler = function (event, context, callback) {
 
-    log(event.path)
-
     let slink = event.queryStringParameters.slink || "";
     let thumb = event.queryStringParameters.thumb || 0;
     let op = event.queryStringParameters.op || null;
