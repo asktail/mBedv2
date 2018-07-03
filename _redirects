@@ -1,4 +1,6 @@
-/                         /index.html 	                            301
-/functions/*              https://error.yuuno.cc/                     302
-/getSlink/*               /.netlify/functions/slink?url=:splat        301
+/                         /index.html 	                                                  301
+/functions/*              https://error.yuuno.cc/                                         302
+/getSlink/*               /.netlify/functions/slink?url=:splat                            301
+/* op=:op                 /.netlify/functions/redirect?slink=:splat&op=:op                302
+/* thumb=:thumb           /.netlify/functions/redirect?slink=:splat&thumb=:thumb          302
 /* thumb=:thumb op=:op    /.netlify/functions/redirect?slink=:splat&thumb=:thumb&op=:op   302
