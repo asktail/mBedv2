@@ -157,7 +157,7 @@
             visual = `<h1 id="title_${e.identifier}">${e.type}</h1>`;
             if ((e.hasOwnProperty("ctype") && e["ctype"].includes("image")) ||
                     IMAGETYPE.includes(e["type"].toLocaleLowerCase())) {
-                visual = `<div id="title_p_${e.identifier}" class="pic" style="background-image: url(https://${window.server}/${e.identifier});"></div>`;
+                visual = `<div id="title_p_${e.identifier}" class="pic" style="background-image: url(https://${window.server}/${e.identifier}?thumb=3);"></div>`;
             }
             chtml += `
             <div id="file_${e.identifier}" class="fileWrapper">
