@@ -184,12 +184,14 @@
             resList.forEach(key => {
                 let e = JSON.parse(JSON.stringify(res[key][0]));
                 e.identifier = key;
+                e.stype = e.name.substr(e.name.lastIndexOf("."));
                 if (res[key].length > 1) {
                     e.name = res[key].map(k => k.name).join(" | ");
+                    e.stype = "Folder";
                     e.type = "Folder";
                     e.size = res[key].map(k => k.size).reduce((r,b)=>r+b);
                 }
-                visual = `<h1 id="title_${e.identifier}">${e.name.substr(e.name.lastIndexOf("."))}</h1>`;
+                visual = `<h1 id="title_${e.identifier}">${e.stype}</h1>`;
                 if (e.type.includes("image")) {
                     visual = `<div id="title_p_${e.identifier}" class="pic" style="background-image: url(${e.url});"></div>`;
                 }
