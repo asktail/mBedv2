@@ -194,6 +194,8 @@ function getSlink (info, callback) {
     req.end();
 }
 
+const MAXLEN = 31 * 1024 * 1024;
+
 exports.handler = function (event, context, callback) {
 
     log("Receive Request From", event.headers["x-forwarded-for"]);
@@ -208,6 +210,19 @@ exports.handler = function (event, context, callback) {
 
     let time = parseInt((new Date()).getTime() / 1000, 10);
     let body = Buffer.from(event.body, 'base64');
+
+    if (body.length > MAXLEN) {
+        callback(null, {
+            statusCode: 200,
+            headers: {
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "GET, POST",
+                "Content-Type": "application/json; charset=utf-8"
+            },
+            body: JSON.stringify({status: false, data: "Entity too large!"})
+        });
+    }
+
     let start = Buffer.from('\r\n\r\n');
     let end = Buffer.from('\r\n---');
     let bstart = body.indexOf(start) + 4;
