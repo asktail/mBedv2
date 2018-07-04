@@ -189,9 +189,8 @@
                     e.type = "Folder";
                     e.size = res[key].map(k => k.size).reduce((r,b)=>r+b);
                 }
-                visual = `<h1 id="title_${e.identifier}">${e.type}</h1>`;
-                if ((e.hasOwnProperty("ctype") && e["ctype"].includes("image")) ||
-                        IMAGETYPE.includes(e["type"].toLocaleLowerCase())) {
+                visual = `<h1 id="title_${e.identifier}">${e.name.substr(e.name.lastIndexOf("."))}</h1>`;
+                if (e.type.includes("image")) {
                     visual = `<div id="title_p_${e.identifier}" class="pic" style="background-image: url(${e.url});"></div>`;
                 }
                 chtml += `
