@@ -221,6 +221,7 @@ exports.handler = function (event, context, callback) {
             },
             body: JSON.stringify({status: false, data: "Entity too large!"})
         });
+        return;
     }
 
     let start = Buffer.from('\r\n\r\n');
