@@ -204,6 +204,8 @@ exports.handler = function (event, context, callback) {
     let slink = event.queryStringParameters.slink || "";
     let thumb = event.queryStringParameters.thumb || 0;
     let op = event.queryStringParameters.op || null;
+    let idx = event.queryStringParameters.index || 0;
+    idx = parseInt(idx, 10); if (!idx) idx = 0;
 
     getUrl(slink.trim(), thumb, res => {
         if (op === "raw" || slink.includes(",")) {
@@ -212,8 +214,8 @@ exports.handler = function (event, context, callback) {
                 body: JSON.stringify(res)
             });
         } else {
-            let url = res && res.data && res.data[0] && res.data[0].url;
-            url = url || res && res[slink] && res[slink][0] && res[slink][0].url;
+            let url = res && res.data && res.data[idx] && res.data[idx].url;
+            url = url || res && res[slink] && res[slink][idx] && res[slink][idx].url;
             callback(null, {
                 statusCode: 302,
                 headers: { "Location": url || "https://error.yuuno.cc" },
