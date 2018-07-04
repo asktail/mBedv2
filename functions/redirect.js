@@ -175,7 +175,7 @@ function getUrl (slink, thumb, callback) {
                 let data = JSON.parse(html);
                 data = JSON.parse(data.data);
                 if (data && data.name) {
-                    getFile(`/${slink}/${data.name}`, thumb).then(res => {
+                    getFile(`/${slink}/${encodeURI(data.name)}`, thumb).then(res => {
                         callback(res);
                     });
                 } else {callback(null);}

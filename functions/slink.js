@@ -237,7 +237,7 @@ exports.handler = function (event, context, callback) {
 
         log("Done Getting Slink", ip);
 
-        saveFile(`/${slink}/${name}`, content, ctype).then(res => {
+        saveFile(`/${slink}/${encodeURI(name)}`, content, ctype).then(res => {
 
             log("Done Saving", ip);
 
