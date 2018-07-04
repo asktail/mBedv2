@@ -75,7 +75,7 @@ function request (host, uri, query={}, method='GET', headers={}, callback=()=>{}
 
 }
 function mrequest(uri, query, key, method='GET', headers={}) {
-    return request("graph.microsoft.com", "/v1.0/me/drive/root" + uri, query, method, {
+    return request("graph.microsoft.com", "/v1.0/me/drive/root" + encodeURI(uri), query, method, {
         "Authorization": "bearer " + key,
         ...headers
     });
@@ -175,7 +175,7 @@ function getUrl (slink, thumb, callback) {
                 let data = JSON.parse(html);
                 data = JSON.parse(data.data);
                 if (data && data.name) {
-                    getFile(`/${slink}/${encodeURI(data.name)}`, thumb).then(res => {
+                    getFile(`/${slink}/${data.name}`, thumb).then(res => {
                         callback(res);
                     });
                 } else {callback(null);}

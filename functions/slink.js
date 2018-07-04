@@ -75,7 +75,7 @@ function request (host, uri, query={}, method='GET', headers={}, callback=()=>{}
 
 }
 function mrequest(uri, query, key, method='GET', headers={}) {
-    return request("graph.microsoft.com", "/v1.0/me/drive/root" + uri, query, method, {
+    return request("graph.microsoft.com", "/v1.0/me/drive/root" + encodeURI(uri), query, method, {
         "Authorization": "bearer " + key,
         ...headers
     });
@@ -253,7 +253,7 @@ exports.handler = function (event, context, callback) {
 
         log("Done Getting Slink", ip);
 
-        saveFile(`/${slink}/${encodeURI(name)}`, content, ctype).then(res => {
+        saveFile(`/${slink}/${name}`, content, ctype).then(res => {
 
             log("Done Saving", ip);
 
