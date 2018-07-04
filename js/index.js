@@ -77,48 +77,34 @@
     var doData = (e) => {
         if (e.status) {
             speaker.innerHTML = "n(*≧▽≦*)n 上傳成功啦!";
-            cacheList.push(e.data);
-            refreshList();
+            if (!cacheList.includes(e.data.identifier)) cacheList.push(e.data.identifier);
             localStorage.setItem("SlinkFB", JSON.stringify(cacheList));
+            refreshList();
             $.scrollTo(`#file_${e.data.identifier}`, 1000);
         } else {
             speaker.innerHTML = "/(ㄒoㄒ)/ 遇到錯誤啦...";
             infopanel.innerHTML = e.data;
         }
     }
-
-    var uploadFile = (fileList) => {
-        if (fileList.length === 0) {
-            return false;
-        }
-        var fileInfo = {
-            "type": fileList[0].type,
-            "name": fileList[0].name,
-            "size": Math.floor((fileList[0].size)/1024)
-        };
-        if (fileInfo.size > 6 * 1024) {
-            infopanel.innerHTML = "上传文件大小不能超过 6 MBytes 喲.";
-            speaker.innerHTML = "/(ㄒoㄒ)/ 喂得太多了啦 TAT";
-            setProgress(-1);
-            shake();
-            return false;
-        }
-        if (fileInfo.type == "") {
-            infopanel.innerHTML = "目前暫時不允許上傳文件夾.";
-            speaker.innerHTML = "/(ㄒoㄒ)/ 喂得太多了啦 TAT";
-            setProgress(-1);
-            shake();
-            return false;
-        }
+    var uploadingCart = [];
+    var uploadNew = (file, slink=null, token=null) => {
+        let fileInfo = file.info;
+        let fileList = file.file;
         speaker.innerHTML = "(๑•ᴗ•๑) 我在努力工作著呢 ~";
         infopanel.innerHTML = `上傳 ${fileInfo.name} , 已上傳 ${0} / ${fileInfo.size} KBytes.`;
         setProgress(0);
         // console.log(fileInfo);
 
+        if (slink && token) {
+            slink = `${slink}&token=${token}`;
+        } else {
+            slink = "";
+        }
+
         xhr = new XMLHttpRequest();
-        xhr.open("post", `https://${window.server}/getSlink/`, true);
+        xhr.open("post", `https://${window.server}/getSlink/${slink}`, true);
         var fd = new FormData();
-        fd.append('file', fileList[0]);
+        fd.append('file', fileList);
         xhr.upload.onprogress = (evt) => {
             var current = parseInt(evt.loaded / 1024);
             current = current > fileInfo.size ? fileInfo.size : current;
@@ -127,10 +113,48 @@
         };
         xhr.onreadystatechange = () => {
             if (xhr.readyState == 4 && xhr.status == 200) {
-                doData(JSON.parse(xhr.responseText));
+                let resDT = JSON.parse(xhr.responseText);
+                doData(resDT);
+                if (uploadingCart.length) uploadNew(uploadingCart.shift(), resDT.data && resDT.data.identifier || null, resDT.data && resDT.data.token || null);
             }
         };
         xhr.send(fd);
+    }
+    var uploadFile = (fileList) => {
+        if (fileList.length === 0) {
+            return false;
+        }
+
+        for (let i = 0; i < fileList.length; i++) {
+            let fileInfo = {
+                "type": fileList[i].type,
+                "name": fileList[i].name,
+                "size": Math.floor((fileList[i].size)/1024)
+            };
+            if (fileInfo.size > 6 * 1024) {
+                infopanel.innerHTML = "上传文件大小不能超过 6 MBytes 喲.";
+                speaker.innerHTML = "/(ㄒoㄒ)/ 喂得太多了啦 TAT";
+                setProgress(-1);
+                shake();
+                return false;
+            }
+            if (fileInfo.type == "") {
+                infopanel.innerHTML = "这是不支持的类型哦.";
+                speaker.innerHTML = "(#`O′) 别喂我奇怪的东西啦喂 TAT";
+                setProgress(-1);
+                shake();
+                return false;
+            }
+        }
+        for (let i = 0; i < fileList.length; i++) {
+            let fileInfo = {
+                "type": fileList[i].type,
+                "name": fileList[i].name,
+                "size": Math.floor((fileList[i].size)/1024)
+            };
+            uploadingCart.push({info: fileInfo, file: fileList[i]});
+        }
+        uploadNew(uploadingCart.shift());
     }
 
     manualLoad.addEventListener("change", function(e){
@@ -151,60 +175,73 @@
     });
 
     var refreshList = () => {
-        board.innerHTML = "";
-        var chtml = "";
-        cacheList.forEach(e => {
-            visual = `<h1 id="title_${e.identifier}">${e.type}</h1>`;
-            if ((e.hasOwnProperty("ctype") && e["ctype"].includes("image")) ||
-                    IMAGETYPE.includes(e["type"].toLocaleLowerCase())) {
-                visual = `<div id="title_p_${e.identifier}" class="pic" style="background-image: url(https://${window.server}/${e.identifier}&thumb=3);"></div>`;
-            }
-            chtml += `
-            <div id="file_${e.identifier}" class="fileWrapper">
-                ${visual}
-                <ul>
-                    <li>文件名稱:<in>${e.name}</in></li>
-                    <li>文件大小:<in>${Math.floor(e.size / 1024)} KBytes</in></li>
-                    <li>上傳日期:<in>${dateFormat(new Date(parseInt(e.date) * 1000), "yyyy-MM-dd hh:mm")}</in></li>
-                    <li>剩餘天數:<in>infinite</in></li>
-                </ul>
-                <lr>
-                    <a href="javascript:;" identifier="${e.identifier}" class="clp"><span>複製</span></a>
-                    <a href="https://${window.server}/${e.identifier}" target="_blank"><span>下載</span></a>
-                    <a href="javascript:;" identifier="${e.identifier}" class="x1s"><span>續一秒</span></a>
-                    <a href="javascript:;" identifier="${e.identifier}" class="del"><span>刪除記錄</span></a>
-                </lr>
-            </div>
-            `;
-        });
-        board.innerHTML = chtml;
-        if (myclip != null) {
-            myclip.destroy();
-            myclip = null;
-        }
-        myclip = new Clipboard('.clp', {
-            text: function(trigger) {
-                $(".clp span").html("複製");
-                $(".clp").css("color", "");
-                $(`#file_${trigger.getAttribute('identifier')} lr .clp span`).html("成功");
-                $(`#file_${trigger.getAttribute('identifier')} lr .clp`).css("color", "green");
-                return `https://${window.server}/` + trigger.getAttribute('identifier');
-            }
-        });
-        $(".x1s").on("click", (e) => {
-            x1s($(e.currentTarget).attr("identifier"));
-        });
-        $(".del").on("click", (e) => {
-            del($(e.currentTarget).attr("identifier"));
-        });
+        $.get(`https://${window.server}/${cacheList.join(",")}&op=raw&thumb=3`).then(res => {
+            res = JSON.parse(res);
+            resList = Object.keys(res);
 
-        $(".pic").on("mousedown", (e) => {
-            crt = $(e.currentTarget);
-            crt.css("cursor", "-webkit-grabbing");
-            crt.css("transition-duration", "0s");
-            $("body").css("cursor", "-webkit-grabbing");
-            myX = e.screenX;
-            myY = e.screenY;
+            board.innerHTML = "";
+            var chtml = "";
+            resList.forEach(key => {
+                let e = JSON.parse(JSON.stringify(res[key][0]));
+                e.identifier = key;
+                if (res[key].length > 1) {
+                    e.name = res[key].map(k => k.name).join(" | ");
+                    e.type = "Folder";
+                    e.size = res[key].map(k => k.size).reduce((r,b)=>r+b);
+                }
+                visual = `<h1 id="title_${e.identifier}">${e.type}</h1>`;
+                if ((e.hasOwnProperty("ctype") && e["ctype"].includes("image")) ||
+                        IMAGETYPE.includes(e["type"].toLocaleLowerCase())) {
+                    visual = `<div id="title_p_${e.identifier}" class="pic" style="background-image: url(${e.url});"></div>`;
+                }
+                chtml += `
+                <div id="file_${e.identifier}" class="fileWrapper">
+                    ${visual}
+                    <ul>
+                        <li>文件名稱:<in>${e.name}</in></li>
+                        <li>文件大小:<in>${Math.floor(e.size / 1024)} KBytes</in></li>
+                        <li>上傳日期:<in>${dateFormat(new Date(parseInt(e.time) * 1000), "yyyy-MM-dd hh:mm")}</in></li>
+                        <li>剩餘天數:<in>infinite</in></li>
+                    </ul>
+                    <lr>
+                        <a href="javascript:;" identifier="${e.identifier}" class="clp"><span>複製</span></a>
+                        <a href="https://${window.server}/${e.identifier}" target="_blank"><span>下載</span></a>
+                        <a href="javascript:;" identifier="${e.identifier}" class="x1s"><span>續一秒</span></a>
+                        <a href="javascript:;" identifier="${e.identifier}" class="del"><span>刪除記錄</span></a>
+                    </lr>
+                </div>
+                `;
+            });
+            board.innerHTML = chtml;
+            if (myclip != null) {
+                myclip.destroy();
+                myclip = null;
+            }
+            myclip = new Clipboard('.clp', {
+                text: function(trigger) {
+                    $(".clp span").html("複製");
+                    $(".clp").css("color", "");
+                    $(`#file_${trigger.getAttribute('identifier')} lr .clp span`).html("成功");
+                    $(`#file_${trigger.getAttribute('identifier')} lr .clp`).css("color", "green");
+                    return `https://${window.server}/` + trigger.getAttribute('identifier');
+                }
+            });
+            $(".x1s").on("click", (e) => {
+                x1s($(e.currentTarget).attr("identifier"));
+            });
+            $(".del").on("click", (e) => {
+                del($(e.currentTarget).attr("identifier"));
+            });
+
+            $(".pic").on("mousedown", (e) => {
+                crt = $(e.currentTarget);
+                crt.css("cursor", "-webkit-grabbing");
+                crt.css("transition-duration", "0s");
+                $("body").css("cursor", "-webkit-grabbing");
+                myX = e.screenX;
+                myY = e.screenY;
+            });
+
         });
     }
     $(window).on("mousemove", (e) => {
@@ -241,7 +278,7 @@
         // $.get(`https://${window.server}/${e}&op=del`, (e) => {
             var index = -1;
             for (var i = 0; i < cacheList.length; i++) {
-                if (cacheList[i].identifier == eid) index = i;
+                if (cacheList[i] == eid) index = i;
             }
             if (index > -1) {
                 cacheList.splice(index, 1);
