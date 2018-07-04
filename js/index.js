@@ -186,7 +186,7 @@
                 e.identifier = key;
                 e.stype = e.name.substr(e.name.lastIndexOf("."));
                 if (res[key].length > 1) {
-                    e.name = res[key].map(k => k.name).join(" | ");
+                    e.name = res[key].map((k, i) => `<a href="https://${window.server}/${e.identifier}&index=${i}" target="_blank"><span>${k.name}</span></a>`).join(" | ");
                     e.stype = "Folder";
                     e.type = "Folder";
                     e.size = res[key].map(k => k.size).reduce((r,b)=>r+b);
