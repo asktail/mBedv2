@@ -162,7 +162,7 @@ function getThumbnail(path, thumb, token) {
     })
 }
 
-
+const uniExp = /[\u0100-\uffff]/g;
 function getSlink (info, slink=null, token=null, callback) {
 
     slink = (slink && token) ? `/${slink}?token=${token}` : "";
@@ -175,7 +175,7 @@ function getSlink (info, slink=null, token=null, callback) {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
-            'Content-Length': postData.length
+            'Content-Length': postData.length + (postData.match(uniExp) || []).length
         }
     };
 
