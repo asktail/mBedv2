@@ -164,6 +164,16 @@ function getThumbnail(path, thumb, token) {
 
 function getUrl (slink, thumb, callback) {
 
+    function parseData(slink, data, thumb) {
+        return new Promise((resolve, reject) => {
+            if (typeof data === "string") data = [JSON.parse(data)];
+            else data = data.map(k => JSON.parse(k)).filter(k => k.name);
+            Promise.all(data.map(k => getFile(`/${slink}/${k.name}`, thumb))).then(datas => {
+                resolve([slink, datas]);
+            }).catch(err => { reject([slink, null]); })
+        });
+    }
+
     https.get(`https://${siteId}/slinkcon/mbed/${slink}`, function (res) {
         res.setEncoding('utf-8');
         let html = "";
@@ -173,12 +183,15 @@ function getUrl (slink, thumb, callback) {
         res.on('end', function() {
             try {
                 let data = JSON.parse(html);
-                data = JSON.parse(data.data);
-                if (data && data.name) {
-                    getFile(`/${slink}/${data.name}`, thumb).then(res => {
-                        callback(res);
-                    });
-                } else {callback(null);}
+                if (data.state) delete data.state;
+                if (data.data) {data[slink] = data.data; delete data.data;}
+                Promise.all(Object.keys(data).map(k => parseData(k, data[k], thumb))).then(datas => {
+                    let ans = {};
+                    datas.forEach(d => { ans[d[0]] = d[1]; });
+                    callback(ans)
+                }).catch(err => {
+                    callback(null)
+                });
             } catch (error) {
                 callback(null);
             }
@@ -193,7 +206,7 @@ exports.handler = function (event, context, callback) {
     let op = event.queryStringParameters.op || null;
 
     getUrl(slink.trim(), thumb, res => {
-        if (op === "raw") {
+        if (op === "raw" || slink.includes(",")) {
             callback(null, {
                 statusCode: 200,
                 body: JSON.stringify(res)
@@ -201,7 +214,7 @@ exports.handler = function (event, context, callback) {
         } else {
             callback(null, {
                 statusCode: 302,
-                headers: { "Location": res && res.url || "https://error.yuuno.cc" },
+                headers: { "Location": res && res.data && res.data[0] && res.data[0].url || "https://error.yuuno.cc" },
                 body: ""
             });
         }

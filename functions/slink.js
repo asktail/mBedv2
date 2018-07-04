@@ -163,13 +163,15 @@ function getThumbnail(path, thumb, token) {
 }
 
 
-function getSlink (info, callback) {
+function getSlink (info, slink=null, token=null, callback) {
+
+    slink = (slink && token) ? `/${slink}?token=${token}` : "";
 
     var postData = `data=${JSON.stringify(info)}`;
     var options = {
         hostname: siteId,
         port: 443,
-        path: '/slinkcon/mbed',
+        path: `/slinkcon/mbed${slink}`,
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
@@ -183,10 +185,10 @@ function getSlink (info, callback) {
         res.on('data', function(data) { html += data; });
         res.on('end', function() {
             try {
-                data = JSON.parse(html).data;
-                callback(data);
+                data = JSON.parse(html);
+                callback(data.data, data.token);
             } catch (error) {
-                callback(null);
+                callback(null, null);
             }
         });
     });
@@ -194,9 +196,12 @@ function getSlink (info, callback) {
     req.end();
 }
 
-const MAXLEN = 31 * 1024 * 1024;
+const MAXLEN = 5 * 1024 * 1024;
 
 exports.handler = function (event, context, callback) {
+
+    let slink = event.queryStringParameters.slink || null;
+    let token = event.queryStringParameters.token || null;
 
     log("Receive Request From", event.headers["x-forwarded-for"]);
     if (event.httpMethod !== "POST" || !event.isBase64Encoded) {
@@ -249,9 +254,22 @@ exports.handler = function (event, context, callback) {
 
     log("Done Converting From", ip);
 
-    getSlink(recordedData, slink => {
+    getSlink(recordedData, slink, token, (slink, token) => {
 
         log("Done Getting Slink", ip);
+
+        if (!slink) {
+            callback(null, {
+                statusCode: 200,
+                headers: {
+                    "Access-Control-Allow-Origin": "*",
+                    "Access-Control-Allow-Methods": "GET, POST",
+                    "Content-Type": "application/json; charset=utf-8"
+                },
+                body: JSON.stringify({status: false, data: "Identity Error!"})
+            });
+            return;
+        }
 
         saveFile(`/${slink}/${name}`, content, ctype).then(res => {
 
@@ -264,7 +282,7 @@ exports.handler = function (event, context, callback) {
                     "Access-Control-Allow-Methods": "GET, POST",
                     "Content-Type": "application/json; charset=utf-8"
                 },
-                body: JSON.stringify({status: true, data: {...recordedData, url: `https://file.yuuno.cc/${slink}`, identifier: slink, date: time}})
+                body: JSON.stringify({status: true, data: {...recordedData, url: `https://file.yuuno.cc/${slink}`, identifier: slink, date: time, token}})
             });
 
         });
