@@ -1,4 +1,4 @@
-/                               /index.html 	                                                301
-/functions/*                    https://error.yuuno.cc/                                         302
-/getSlink/*                     /.netlify/functions/slink?url=:splat                            301
-/*                              /.netlify/functions/redirect?slink=:splat                       302
+/                               /index.html 	                                                200
+/functions/*                    https://error.yuuno.cc/                                         404
+/getSlink/                      /.netlify/functions/slink                                       200
+/*                              /.netlify/functions/redirect?slink=:splat                       200

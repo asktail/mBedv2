@@ -116,7 +116,7 @@
         // console.log(fileInfo);
 
         xhr = new XMLHttpRequest();
-        xhr.open("post", `https://${window.server}/.netlify/functions/slink`, true);
+        xhr.open("post", `https://${window.server}/getSlink/`, true);
         var fd = new FormData();
         fd.append('file', fileList[0]);
         xhr.upload.onprogress = (evt) => {
@@ -227,18 +227,18 @@
 
     var x1s = (e) => {
         let eid = e;
-        $.get(`https://${window.server}/${e}/true`, (e) => {
-            if (e.status) {
+        // $.get(`https://${window.server}/${e}&op=longer`, (e) => {
+            // if (e.status) {
                 $(".x1s span").html("續一秒");
                 $(".x1s").css("color", "");
                 $(`#file_${eid} lr .x1s span`).html("續.成功");
                 $(`#file_${eid} lr .x1s`).css("color", "red");
-            }
-        });
+            // }
+        // });
     }
     var del = (e) => {
         let eid = e;
-        $.get(`https://${window.server}/${e}/false`, (e) => {
+        // $.get(`https://${window.server}/${e}&op=del`, (e) => {
             var index = -1;
             for (var i = 0; i < cacheList.length; i++) {
                 if (cacheList[i].identifier == eid) index = i;
@@ -248,8 +248,8 @@
                 localStorage.setItem("SlinkFB", JSON.stringify(cacheList));
                 refreshList();
             }
-            showInfo(e.data);
-        });
+            // showInfo(e.data);
+        // });
     }
 
     $(window).on("load", () => {
