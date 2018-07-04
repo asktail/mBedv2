@@ -212,9 +212,11 @@ exports.handler = function (event, context, callback) {
                 body: JSON.stringify(res)
             });
         } else {
+            let url = res && res.data && res.data[0] && res.data[0].url;
+            url = url || res && res[slink] && res[slink][0] && res[slink][0].url;
             callback(null, {
                 statusCode: 302,
-                headers: { "Location": res && res.data && res.data[0] && res.data[0].url || "https://error.yuuno.cc" },
+                headers: { "Location": url || "https://error.yuuno.cc" },
                 body: ""
             });
         }
