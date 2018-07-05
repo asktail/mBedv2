@@ -75,11 +75,12 @@
         $("#progress").css("width", (e * 100) + "%");
     }
     var doData = (e) => {
+        if (window.verbose) console.log(e);
         if (e.status) {
             speaker.innerHTML = "n(*≧▽≦*)n 上傳成功啦!";
             if (!cacheList.includes(e.data.identifier)) cacheList.push(e.data.identifier);
             localStorage.setItem("SlinkFB", JSON.stringify(cacheList));
-            refreshList();
+            if (uploadingCart.length === 0) refreshList();
             $.scrollTo(`#file_${e.data.identifier}`, 1000);
         } else {
             speaker.innerHTML = "/(ㄒoㄒ)/ 遇到錯誤啦...";
