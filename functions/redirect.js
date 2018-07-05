@@ -1,6 +1,7 @@
 var https = require('https');
 var crypto = require('crypto');
 
+var odToken = "";
 let siteId = process.env.site_for_use || "";
 let VERBOSE = process.env.site_for_verbose || "0";
 const log = function(...text) {
@@ -81,10 +82,10 @@ function mrequest(uri, query, key, method='GET', headers={}) {
     });
 }
 function getKey (callback) {
-
+    if (odToken) {callback(odToken); return; }
     request(siteId, "/slinkkey/moenya/odrefresh,odtoken,odexpire,clientid,redirecturi,clientsc").then(data => {
         let expire = (parseInt(data.odexpire, 10) || 0) < ((new Date()).getTime() / 1000);
-        if (!expire) { callback(data.odtoken); return; }
+        if (!expire) { odToken = data.odtoken; callback(data.odtoken); return; }
         request("login.microsoftonline.com", "/common/oauth2/v2.0/token", {
             client_id: data.clientid,
             redirect_uri: data.redirecturi,
@@ -98,6 +99,7 @@ function getKey (callback) {
                     odtoken: res["access_token"],
                     odexpire: (parseInt(res["expires_in"], 10) + parseInt((new Date()).getTime() / 1000, 10) - 60)
                 }, "POST", { "Content-Type": "application/x-www-form-urlencoded" }).then(ans => {
+                    odToken = res["access_token"];
                     callback(res["access_token"]);
                 });
             }
