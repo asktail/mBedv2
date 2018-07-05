@@ -60,7 +60,7 @@ function request (host, uri, query={}, method='GET', headers={}, callback=()=>{}
                 try {
                     let data = JSON.parse(html); callback(data); resolve(data);
                 } catch (error) {
-                    callback(null); reject(error);
+                    console.log("Error URL:", host, uri); callback(null); reject(error);
                 }
             });
         });
