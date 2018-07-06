@@ -164,13 +164,22 @@ function getThumbnail(path, thumb, token) {
     })
 }
 
-function getUrl (slink, thumb, callback) {
+function getUrl (slink, thumb, lazy=true, idx=0, callback) {
 
     function parseData(slink, data, thumb) {
         return new Promise((resolve, reject) => {
             if (typeof data === "string") data = [JSON.parse(data)];
             else data = data.map(k => JSON.parse(k)).filter(k => k.name);
+            let oriData = data;
+            if (lazy && oriData.length > 1) {
+                data = oriData[idx] ? [oriData[idx]] : [];
+            }
             Promise.all(data.map(k => getFile(`/${slink}/${k.name}`, thumb))).then(datas => {
+                if (lazy && oriData.length > 1) {
+                    oriData[idx] = datas[0]
+                    resolve([slink, oriData]);
+                    return;
+                }
                 resolve([slink, datas]);
             }).catch(err => { reject([slink, null]); })
         });
@@ -189,13 +198,13 @@ function getUrl (slink, thumb, callback) {
                 if (data.data) {data[slink] = data.data; delete data.data;}
                 Promise.all(Object.keys(data).map(k => parseData(k, data[k], thumb))).then(datas => {
                     let ans = {};
-                    datas.forEach(d => { ans[d[0]] = d[1]; });
+                    datas.forEach(d => { if (d && d[0]) ans[d[0]] = d[1]; });
                     callback(ans)
                 }).catch(err => {
-                    callback(null)
+                    callback({})
                 });
             } catch (error) {
-                callback(null);
+                callback({});
             }
         });
     });
@@ -209,8 +218,11 @@ exports.handler = function (event, context, callback) {
     let idx = event.queryStringParameters.index || 0;
     idx = parseInt(idx, 10); if (!idx) idx = 0;
 
-    getUrl(slink.trim(), thumb, res => {
-        if (op === "raw" || slink.includes(",")) {
+    let lazy = true;
+    if (op === "unlazy") lazy = false;
+
+    getUrl(slink.trim(), thumb, lazy, idx, res => {
+        if (op === "raw" || op === "unlazy" || slink.includes(",")) {
             callback(null, {
                 statusCode: 200,
                 body: JSON.stringify(res)
