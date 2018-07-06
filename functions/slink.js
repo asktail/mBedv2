@@ -186,10 +186,10 @@ function getSlink (info, slink=null, token=null, callback) {
         res.on('end', function() {
             try {
                 data = JSON.parse(html);
-                callback(data.data, data.token);
+                callback(data.data, data.token, data.index || 0);
             } catch (error) {
                 console.log("Get Slink Error", error);
-                callback(null, null);
+                callback(null, null, 0);
             }
         });
     });
@@ -278,7 +278,7 @@ exports.handler = function (event, context, callback) {
     let { name, ctype } = recordedData;
     log("Done Converting From", ip);
 
-    getSlink(recordedData, slink, token, (slink, token) => {
+    getSlink(recordedData, slink, token, (slink, token, idx) => {
 
         log("Done Getting Slink", ip);
 
@@ -306,7 +306,7 @@ exports.handler = function (event, context, callback) {
                     "Access-Control-Allow-Methods": "GET, POST",
                     "Content-Type": "application/json; charset=utf-8"
                 },
-                body: JSON.stringify({status: true, data: {...recordedData, url: `https://file.yuuno.cc/${slink}`, identifier: slink, date: time, token}})
+                body: JSON.stringify({status: true, data: {...recordedData, url: `https://file.yuuno.cc/${slink}`, identifier: slink, date: time, token, index: idx}})
             });
 
         });
