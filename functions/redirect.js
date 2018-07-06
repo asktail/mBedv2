@@ -210,8 +210,14 @@ function getUrl (slink, thumb, lazy=true, idx=0, callback) {
     });
 }
 
+function timingFunc(fromIp="UnKnown", name="times") {
+    console.log(`Request of ${fromIp} ${name} at ${parseInt((new Date()).getTime() / 1000, 10)}`)
+}
+
 exports.handler = function (event, context, callback) {
 
+    let fromIp = event.headers && event.headers["x-forwarded-for"] || "UnKnown";
+    timingFunc(fromIp, "starts");
     let slink = event.queryStringParameters.slink || "";
     let thumb = event.queryStringParameters.thumb || 0;
     let op = event.queryStringParameters.op || null;
@@ -223,6 +229,7 @@ exports.handler = function (event, context, callback) {
 
     getUrl(slink.trim(), thumb, lazy, idx, res => {
         if (op === "raw" || op === "unlazy" || slink.includes(",")) {
+            timingFunc(fromIp, `finishes ${op || "origin plus"}`);
             callback(null, {
                 statusCode: 200,
                 body: JSON.stringify(res)
@@ -230,6 +237,7 @@ exports.handler = function (event, context, callback) {
         } else {
             let url = res && res.data && res.data[idx] && res.data[idx].url;
             url = url || res && res[slink] && res[slink][idx] && res[slink][idx].url;
+            timingFunc(fromIp, `finishes origin`);
             callback(null, {
                 statusCode: 302,
                 headers: { "Location": url || "https://error.yuuno.cc" },
