@@ -188,6 +188,7 @@ function getSlink (info, slink=null, token=null, callback) {
                 data = JSON.parse(html);
                 callback(data.data, data.token);
             } catch (error) {
+                console.log("Get Slink Error", error);
                 callback(null, null);
             }
         });
@@ -229,8 +230,11 @@ exports.handler = function (event, context, callback) {
 
     let slink = event.queryStringParameters.slink || null;
     let token = event.queryStringParameters.token || null;
+    let ip = event.headers["x-forwarded-for"] || "";
 
-    log("Receive Request From", event.headers["x-forwarded-for"]);
+    console.log(`Start Handling Request of ${ip} with ${slink} - ${token}`);
+
+    log("Receive Request From", ip);
     if (event.httpMethod !== "POST" || !event.isBase64Encoded) {
         callback(null, {
             statusCode: 200,
@@ -238,7 +242,7 @@ exports.handler = function (event, context, callback) {
         });
         return;
     }
-    log("Process Request From", event.headers["x-forwarded-for"]);
+    log("Process Request From", ip);
 
     let time = parseInt((new Date()).getTime() / 1000, 10);
     let body = Buffer.from(event.body, 'base64');
@@ -256,7 +260,7 @@ exports.handler = function (event, context, callback) {
         return;
     }
 
-    let ip = event.headers["x-forwarded-for"] || "";
+    
     let recordedData = parseBody(body, ip);
     if (!recordedData) {
         callback(null, {
