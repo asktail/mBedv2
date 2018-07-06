@@ -275,6 +275,7 @@ exports.handler = function (event, context, callback) {
         return;
     }
 
+    let { name, ctype } = recordedData;
     log("Done Converting From", ip);
 
     getSlink(recordedData, slink, token, (slink, token) => {
