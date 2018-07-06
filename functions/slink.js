@@ -197,6 +197,33 @@ function getSlink (info, slink=null, token=null, callback) {
 }
 
 const MAXLEN = 5 * 1024 * 1024;
+function parseBody(body, ip) {
+    try {
+        let time = parseInt((new Date()).getTime() / 1000, 10);
+        let start = Buffer.from('\r\n\r\n');
+        let end = Buffer.from('\r\n---');
+        let bstart = body.indexOf(start) + 4;
+        let bend = body.lastIndexOf(end);
+        let blength = bend - bstart;
+        let content = new Buffer(blength);
+        body.copy(content, 0, bstart, bend);
+        let header = new Buffer(bstart);
+        body.copy(header, 0, 0, bstart);
+        header = header.toString().trim();
+        // header = header.split("\r\n").filter(Boolean).filter(w => !w.startsWith("-"));
+        let nameHeader = header.substr(header.indexOf("filename") + 10) + "\r;";
+        let name = nameHeader.substr(0, min(nameHeader.indexOf("\r"), nameHeader.indexOf(";")) - 1);
+        let typeHeader = header.substr(header.indexOf("Content-Type") + 14) + "\r;";
+        let ctype = typeHeader.substr(0, min(typeHeader.indexOf("\r"), typeHeader.indexOf(";"))) || "application/octet-stream";
+        let type = name.substr(name.lastIndexOf("."));
+        let size = content.length;
+        return { name, size, type, ctype, ip, time };
+    } catch(err) {
+        console.log("Error of Request", ip)
+        console.log(err);
+        return null;
+    }
+}
 
 exports.handler = function (event, context, callback) {
 
@@ -229,28 +256,20 @@ exports.handler = function (event, context, callback) {
         return;
     }
 
-    let start = Buffer.from('\r\n\r\n');
-    let end = Buffer.from('\r\n---');
-    let bstart = body.indexOf(start) + 4;
-    let bend = body.lastIndexOf(end);
-    let blength = bend - bstart;
-    let content = new Buffer(blength);
-    body.copy(content, 0, bstart, bend);
-    let header = new Buffer(bstart);
-    body.copy(header, 0, 0, bstart);
-    header = header.toString().trim();
-    // header = header.split("\r\n").filter(Boolean).filter(w => !w.startsWith("-"));
-    let nameHeader = header.substr(header.indexOf("filename") + 10) + "\r;";
-    let name = nameHeader.substr(0, min(nameHeader.indexOf("\r"), nameHeader.indexOf(";")) - 1);
-    let typeHeader = header.substr(header.indexOf("Content-Type") + 14) + "\r;";
-    let ctype = typeHeader.substr(0, min(typeHeader.indexOf("\r"), typeHeader.indexOf(";"))) || "application/octet-stream";
-    let type = name.substr(name.lastIndexOf("."));
     let ip = event.headers["x-forwarded-for"] || "";
-    let size = content.length;
-
-    let recordedData = {
-        name, size, type, ctype, ip, time
-    };
+    let recordedData = parseBody(body, ip);
+    if (!recordedData) {
+        callback(null, {
+            statusCode: 200,
+            headers: {
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "GET, POST",
+                "Content-Type": "application/json; charset=utf-8"
+            },
+            body: JSON.stringify({status: false, data: "Unknown Request Format!"})
+        });
+        return;
+    }
 
     log("Done Converting From", ip);
 
