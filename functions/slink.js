@@ -218,11 +218,11 @@ function parseBody(body, ip) {
         let ctype = typeHeader.substr(0, min(typeHeader.indexOf("\r"), typeHeader.indexOf(";"))) || "application/octet-stream";
         let type = name.substr(name.lastIndexOf("."));
         let size = content.length;
-        return { name, size, type, ctype, ip, time };
+        return [content, { name, size, type, ctype, ip, time }];
     } catch(err) {
         console.log("Error of Request", ip);
         console.log(err);
-        return null;
+        return [null, null];
     }
 }
 
@@ -261,7 +261,7 @@ exports.handler = function (event, context, callback) {
     }
 
     
-    let recordedData = parseBody(body, ip);
+    let [content, recordedData] = parseBody(body, ip);
     if (!recordedData) {
         callback(null, {
             statusCode: 200,
