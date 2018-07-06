@@ -201,7 +201,7 @@ function parseBody(body, ip) {
     try {
         let time = parseInt((new Date()).getTime() / 1000, 10);
         let start = Buffer.from('\r\n\r\n');
-        let end = Buffer.from('\r\n---');
+        let end = Buffer.from('\r\n--');
         let bstart = body.indexOf(start) + 4;
         let bend = body.lastIndexOf(end);
         let blength = bend - bstart;
@@ -219,7 +219,7 @@ function parseBody(body, ip) {
         let size = content.length;
         return { name, size, type, ctype, ip, time };
     } catch(err) {
-        console.log("Error of Request", ip)
+        console.log("Error of Request", ip);
         console.log(err);
         return null;
     }
