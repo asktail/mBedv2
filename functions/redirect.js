@@ -227,23 +227,25 @@ exports.handler = function (event, context, callback) {
     let lazy = true;
     if (op === "unlazy") lazy = false;
 
-    getUrl(slink.trim(), thumb, lazy, idx, res => {
-        if (op === "raw" || op === "unlazy" || slink.includes(",")) {
-            timingFunc(fromIp, `finishes ${op || "origin plus"}`);
-            callback(null, {
-                statusCode: 200,
-                body: JSON.stringify(res)
-            });
-        } else {
-            let url = res && res.data && res.data[idx] && res.data[idx].url;
-            url = url || res && res[slink] && res[slink][idx] && res[slink][idx].url;
-            timingFunc(fromIp, `finishes origin`);
-            callback(null, {
-                statusCode: 302,
-                headers: { "Location": url || "https://error.yuuno.cc" },
-                body: ""
-            });
-        }
+    getKey(token => {
+        getUrl(slink.trim(), thumb, lazy, idx, res => {
+            if (op === "raw" || op === "unlazy" || slink.includes(",")) {
+                timingFunc(fromIp, `finishes ${op || "origin plus"}`);
+                callback(null, {
+                    statusCode: 200,
+                    body: JSON.stringify(res)
+                });
+            } else {
+                let url = res && res.data && res.data[idx] && res.data[idx].url;
+                url = url || res && res[slink] && res[slink][idx] && res[slink][idx].url;
+                timingFunc(fromIp, `finishes origin`);
+                callback(null, {
+                    statusCode: 302,
+                    headers: { "Location": url || "https://error.yuuno.cc" },
+                    body: ""
+                });
+            }
+        });
     });
 
 }
