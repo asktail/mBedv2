@@ -166,8 +166,9 @@ function getThumbnail(path, thumb, token) {
 
 function getUrl (slink, thumb, lazy=true, idx=0, callback) {
 
-    function parseData(slink, data, thumb) {
+    function parseSlinkData(slink, data, thumb) {
         return new Promise((resolve, reject) => {
+            if (!data) {resolve([slink, null]); return;}
             if (typeof data === "string") data = [JSON.parse(data)];
             else data = data.map(k => JSON.parse(k)).filter(k => k.name);
             let oriData = data;
@@ -181,7 +182,7 @@ function getUrl (slink, thumb, lazy=true, idx=0, callback) {
                     return;
                 }
                 resolve([slink, datas]);
-            }).catch(err => { reject([slink, null]); })
+            }).catch(err => { resolve([slink, null]); })
         });
     }
 
@@ -196,7 +197,7 @@ function getUrl (slink, thumb, lazy=true, idx=0, callback) {
                 let data = JSON.parse(html);
                 if (data.state) delete data.state;
                 if (data.data) {data[slink] = data.data; delete data.data;}
-                Promise.all(Object.keys(data).map(k => parseData(k, data[k], thumb))).then(datas => {
+                Promise.all(Object.keys(data).map(k => parseSlinkData(k, data[k], thumb))).then(datas => {
                     let ans = {};
                     datas.forEach(d => { if (d && d[0]) ans[d[0]] = d[1]; });
                     callback(ans)
