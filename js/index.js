@@ -179,10 +179,13 @@
         $.get(`https://${window.server}/${cacheList.join(",")}&op=raw&thumb=3`).then(res => {
             res = JSON.parse(res);
             resList = Object.keys(res);
+            successList = [];
 
             board.innerHTML = "";
             var chtml = "";
             resList.forEach(key => {
+                if (res[key]) successList.push(key);
+                else return;
                 let e = JSON.parse(JSON.stringify(res[key][0]));
                 e.identifier = key;
                 e.stype = e.name.substr(e.name.lastIndexOf("."));
@@ -243,7 +246,10 @@
                 myX = e.screenX;
                 myY = e.screenY;
             });
-
+            if (successList.length > 0) {
+                cacheList = successList;
+                localStorage.setItem("SlinkFB", JSON.stringify(cacheList));
+            }
         });
     }
     $(window).on("mousemove", (e) => {
@@ -294,10 +300,25 @@
     $(window).on("load", () => {
         init();
     })
+    new Clipboard('#export', {
+        text: function(trigger) {
+            let cstr = cacheList.join(",");
+            if (cstr) cstr = "/#" + cstr;
+            return `https://${window.server}${cstr}`;
+        }
+    });
     init = () => {
         cacheList = localStorage.getItem("SlinkFB");
         if (cacheList == null) cacheList = [];
         else cacheList = JSON.parse(cacheList);
+
+        let hash = window.location.hash;
+        if (hash.length > 1 && hash.startsWith("#")) {
+            hash = hash.substr(1);
+            hash.split(",").forEach(key => {
+                if (!cacheList.includes(key)) cacheList.push(key);
+            });
+        }
         refreshList();
     }
 })();
