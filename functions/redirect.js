@@ -1,7 +1,7 @@
 var https = require('https');
 var crypto = require('crypto');
 
-var odToken = "";
+var odToken = null;
 let siteId = process.env.site_for_use || "";
 let VERBOSE = process.env.site_for_verbose || "0";
 const log = function(...text) {
